@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	// Load environment variables dari file .env (jika ada)
+
 	config.Load()
 
 	// Koneksi database
