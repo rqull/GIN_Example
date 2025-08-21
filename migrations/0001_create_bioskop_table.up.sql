@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS bioskop (
+    id SERIAL PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    lokasi VARCHAR(100) NOT NULL,
+    rating REAL
+);
