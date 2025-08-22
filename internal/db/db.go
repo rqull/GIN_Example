@@ -35,7 +35,7 @@ func ConnectDB() *sql.DB {
 		}
 	}
 
-	db, err := sql.Open("pgx", dsn) // sesuaikan nama driver
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
 	}
