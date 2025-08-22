@@ -3,34 +3,44 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"net/url"
+	"os"
 
 	_ "github.com/lib/pq"
-	"github.com/rqull/GIN_Example/internal/config"
 )
 
 func ConnectDB() *sql.DB {
-	host := config.GetEnv("DB_HOST", "localhost")
-	port := config.GetEnv("DB_PORT", "5432")
-	user := config.GetEnv("DB_USER", "postgres")
-	password := config.GetEnv("DB_PASSWORD", "12345")
-	name := config.GetEnv("DB_NAME", "bioskopdb")
-	sslmode := config.GetEnv("DB_SSLMODE", "disable")
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		host := os.Getenv("DB_HOST")
+		port := os.Getenv("DB_PORT")
+		user := os.Getenv("DB_USER")
+		pass := os.Getenv("DB_PASSWORD")
+		name := os.Getenv("DB_NAME")
+		sslmode := os.Getenv("DB_SSLMODE")
+		if sslmode == "" {
+			sslmode = "require" // default aman untuk Railway
+		}
+		dsn = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", url.PathEscape(user), url.PathEscape(pass), host, port, name, sslmode)
+	} else {
+		// pastikan sslmode ada
+		u, err := url.Parse(dsn)
+		if err == nil {
+			q := u.Query()
+			if q.Get("sslmode") == "" {
+				q.Set("sslmode", "require")
+				u.RawQuery = q.Encode()
+				dsn = u.String()
+			}
+		}
+	}
 
-	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, name, sslmode,
-	)
-
-	database, err := sql.Open("postgres", dsn)
+	db, err := sql.Open("pgx", dsn) // sesuaikan nama driver
 	if err != nil {
-		log.Fatal("Gagal membuka koneksi database:", err)
+		panic(err)
 	}
-
-	if err := database.Ping(); err != nil {
-		log.Fatal("Tidak bisa ping database:", err)
+	if err := db.Ping(); err != nil {
+		panic(err)
 	}
-
-	log.Println("Database connected")
-	return database
+	return db
 }

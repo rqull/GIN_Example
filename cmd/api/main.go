@@ -2,11 +2,22 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/rqull/GIN_Example/internal/config"
 	"github.com/rqull/GIN_Example/internal/db"
 	"github.com/rqull/GIN_Example/internal/router"
 )
+
+func httpPort() string {
+	if p := os.Getenv("PORT"); p != "" { // prioritas env dari Railway
+		return p
+	}
+	if p := os.Getenv("APP_PORT"); p != "" {
+		return p
+	}
+	return "8080"
+}
 
 func main() {
 	config.Load()
@@ -24,7 +35,7 @@ func main() {
 	r := router.SetupRouter(database)
 
 	// Jalankan server dengan port dari environment
-	port := config.GetEnv("APP_PORT", "8080")
+	port := httpPort()
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Gagal menjalankan server:", err)
 	}
